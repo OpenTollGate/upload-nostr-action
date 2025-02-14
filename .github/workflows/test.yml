@@ -27,5 +27,7 @@ jobs:
       - name: Announce on Nostr
         uses: ./
         with:
-          host: 'wss://orangesync.tech'
+          host: 'https://blossom.swissdash.site/'
+          relay: 'wss://orangesync.tech'
           file-hash: ${{ steps.upload.outputs.blossom-hash }}
+          nsec: ${{ secrets.NOSTR_PRIVATE_KEY }}
