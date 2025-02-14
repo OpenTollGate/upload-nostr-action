@@ -11,20 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
       - name: Create dummy file
         run: |
           echo "This is a test file" > dummy.txt
-      
       - name: Upload dummy to Blossom
         id: upload
         uses: Origami74/upload-blossom-action@main
         with:
           host: 'https://blossom.swissdash.site/'
           filePath: './dummy.txt'
-          
       - name: Announce on Nostr
-        uses: ./ # Uses the action from the current repository
+        uses: ./
         with:
           host: 'wss://orangesync.tech'
           file-hash: ${{ steps.upload.outputs.blossom-hash }}
