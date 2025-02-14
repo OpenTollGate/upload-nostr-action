@@ -21,24 +21,9 @@ async function run() {
         console.log("Creating SimplePool...");
         pool = new SimplePool();
         
-        // Connect to relay with timeout
+        // Connect and publish with timeout
         console.log(`Connecting to relay: ${relay}`);
-        const relayConnection = new Promise((resolve, reject) => {
-            const relayInstance = pool.ensureRelay(relay);
-            relayInstance.on('connect', () => resolve(relayInstance));
-            relayInstance.on('error', reject);
-        });
-
-        // Wait for connection with 30 second timeout
-        const connectedRelay = await Promise.race([
-            relayConnection,
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Relay connection timeout after 30 seconds')), 30000)
-            )
-        ]);
-
-        console.log('Successfully connected to relay');
-
+        
         const pubkey = getPublicKey(nsec);
         const fileUrl = `${host}${blossomHash}.txt`;
         
@@ -53,21 +38,19 @@ async function run() {
         
         // Publish with timeout
         console.log('Publishing event...');
-        const publication = new Promise((resolve, reject) => {
-            pool.publish([relay], signedEvent)
-                .then(resolve)
-                .catch(reject);
-        });
-
-        await Promise.race([
-            publication,
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Publication timeout after 30 seconds')), 30000)
-            )
-        ]);
-
-        console.log('Event published successfully');
-        core.setOutput('event-id', signedEvent.id);
+        try {
+            await Promise.race([
+                pool.publish([relay], signedEvent),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Publication timeout after 30 seconds')), 30000)
+                )
+            ]);
+            
+            console.log('Event published successfully');
+            core.setOutput('event-id', signedEvent.id);
+        } catch (pubError) {
+            throw new Error(`Failed to publish: ${pubError.message}`);
+        }
 
     } catch (error) {
         console.error("Action failed:", error.message);
@@ -75,20 +58,21 @@ async function run() {
     } finally {
         if (pool) {
             try {
-                // Properly close the pool
+                // Simple delay before cleanup
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                if (pool.close && typeof pool.close === 'function') {
-                    await pool.close();
-                } else {
-                    // Alternative closing method if pool.close is not available
-                    const relays = Object.values(pool._relays || {});
-                    await Promise.all(relays.map(relay => 
-                        relay && relay.close ? relay.close() : Promise.resolve()
-                    ));
+                
+                // Clean up relays
+                if (pool._relays) {
+                    for (const [_, relay] of Object.entries(pool._relays)) {
+                        if (relay && typeof relay.close === 'function') {
+                            await relay.close();
+                        }
+                    }
                 }
-                console.log("Pool closed successfully");
+                
+                console.log("Pool cleaned up successfully");
             } catch (closeError) {
-                console.error("Error closing pool:", closeError);
+                console.error("Error during cleanup:", closeError);
             }
         }
     }
@@ -97,12 +81,10 @@ async function run() {
 // Error handler for unhandled promises
 process.on('unhandledRejection', (error) => {
     console.error('Unhandled promise rejection:', error);
-    // Don't exit immediately to allow for cleanup
     setTimeout(() => process.exit(1), 1000);
 });
 
 run().then(() => {
-    // Allow time for cleanup before exit
     setTimeout(() => process.exit(0), 1000);
 }).catch((error) => {
     console.error("Run failed:", error);
