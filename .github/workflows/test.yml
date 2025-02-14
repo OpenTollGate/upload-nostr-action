@@ -18,7 +18,7 @@ jobs:
       
       - name: Upload dummy to Blossom
         id: upload
-        uses: your-org/upload-blossom-action@v1
+        uses: OpenTollGate/upload-blossom-action@v1
         with:
           host: 'https://blossom.swissdash.site/'
           filePath: './dummy.txt'
