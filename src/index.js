@@ -1,5 +1,6 @@
 const core = require('@actions/core');
-const { SimplePool, getPublicKey, getEventHash, signEvent, nip19 } = require('nostr-tools');
+const { SimplePool } = require('nostr-tools');
+const { getPublicKey, finalizeEvent } = require('nostr-tools/pure');
 const WebSocket = require('ws');
 
 async function run() {
@@ -24,44 +25,32 @@ async function run() {
         const fileUrl = `${host}${blossomHash}.txt`;
         console.log("File URL:", fileUrl);
         
-        const event = {
+        const eventTemplate = {
             kind: 1,
             created_at: Math.floor(Date.now() / 1000),
             tags: [['r', fileUrl]],
             content: `File uploaded: ${fileUrl}`,
-            pubkey: pubkey
         };
         
-        console.log("Created event:", JSON.stringify(event, null, 2));
+        console.log("Created event template:", JSON.stringify(eventTemplate, null, 2));
         
-        event.id = getEventHash(event);
-        console.log("Generated event hash:", event.id);
-        
-        event.sig = signEvent(event, nsec);
-        console.log("Signed event. Signature:", event.sig);
+        // Use finalizeEvent instead of separate hash and sign steps
+        const signedEvent = finalizeEvent(eventTemplate, nsec);
+        console.log("Finalized event:", JSON.stringify(signedEvent, null, 2));
         
         try {
             console.log(`Attempting to publish to relay: ${relay}`);
             
-            // Add event handlers to the pool
-            pool.on('connect', (relay) => {
-                console.log(`Connected to relay: ${relay}`);
-            });
-            
-            pool.on('error', (relay, error) => {
-                console.error(`Relay error: ${error}`);
-            });
-            
-            const pub = await pool.publish([relay], event);
+            const pub = await pool.publish([relay], signedEvent);
             console.log("Publish response:", pub);
-            console.log("Published event:", event.id);
+            console.log("Published event:", signedEvent.id);
             
             // Wait a bit before closing the pool
             console.log("Waiting 5 seconds before closing pool...");
             await new Promise(resolve => setTimeout(resolve, 5000));
             
-            core.setOutput('event-id', event.id);
-            console.log("Set output event-id:", event.id);
+            core.setOutput('event-id', signedEvent.id);
+            console.log("Set output event-id:", signedEvent.id);
             
             await pool.close();
             console.log("Pool closed");
