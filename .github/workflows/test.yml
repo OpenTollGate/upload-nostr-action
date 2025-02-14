@@ -1,0 +1,30 @@
+name: Test Nostr Announcement Action
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  test-announce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Create dummy file
+        run: |
+          echo "This is a test file" > dummy.txt
+      
+      - name: Upload dummy to Blossom
+        id: upload
+        uses: your-org/upload-blossom-action@v1
+        with:
+          host: 'https://blossom.swissdash.site/'
+          filePath: './dummy.txt'
+          
+      - name: Announce on Nostr
+        uses: ./ # Uses the action from the current repository
+        with:
+          host: 'wss://orangesync.tech'
+          file-hash: ${{ steps.upload.outputs.blossom-hash }}
