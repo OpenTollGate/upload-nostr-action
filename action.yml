@@ -14,5 +14,5 @@ outputs:
   event-id:
     description: 'The Nostr event ID of the announcement'
 runs:
-  using: node20 # Or node16
-  main: dist/index.js # Path to your compiled JavaScript file
+  using: 'node20'
+  main: 'dist/index.js'
