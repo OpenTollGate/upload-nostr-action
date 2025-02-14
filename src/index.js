@@ -1,5 +1,5 @@
 const core = require('@actions/core');
-const { getPublicKey, getEventHash, signEvent } = require('nostr-tools');
+import { SimplePool, getPublicKey, getEventHash, signEvent } from 'nostr-tools';
 const WebSocket = require('ws');
 const { nip19 } = require('nostr-tools');
 
