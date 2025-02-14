@@ -41042,6 +41042,143 @@ async function validateEvent2(event, url, method, body) {
 }
 
 
+/***/ }),
+
+/***/ 9810:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pure.ts
+var pure_exports = {};
+__export(pure_exports, {
+  finalizeEvent: () => finalizeEvent,
+  generateSecretKey: () => generateSecretKey,
+  getEventHash: () => getEventHash,
+  getPublicKey: () => getPublicKey,
+  serializeEvent: () => serializeEvent,
+  sortEvents: () => sortEvents,
+  validateEvent: () => validateEvent,
+  verifiedSymbol: () => verifiedSymbol,
+  verifyEvent: () => verifyEvent
+});
+module.exports = __toCommonJS(pure_exports);
+var import_secp256k1 = __nccwpck_require__(6001);
+var import_utils = __nccwpck_require__(4248);
+
+// core.ts
+var verifiedSymbol = Symbol("verified");
+var isRecord = (obj) => obj instanceof Object;
+function validateEvent(event) {
+  if (!isRecord(event))
+    return false;
+  if (typeof event.kind !== "number")
+    return false;
+  if (typeof event.content !== "string")
+    return false;
+  if (typeof event.created_at !== "number")
+    return false;
+  if (typeof event.pubkey !== "string")
+    return false;
+  if (!event.pubkey.match(/^[a-f0-9]{64}$/))
+    return false;
+  if (!Array.isArray(event.tags))
+    return false;
+  for (let i2 = 0; i2 < event.tags.length; i2++) {
+    let tag = event.tags[i2];
+    if (!Array.isArray(tag))
+      return false;
+    for (let j = 0; j < tag.length; j++) {
+      if (typeof tag[j] === "object")
+        return false;
+    }
+  }
+  return true;
+}
+function sortEvents(events) {
+  return events.sort((a, b) => {
+    if (a.created_at !== b.created_at) {
+      return b.created_at - a.created_at;
+    }
+    return a.id.localeCompare(b.id);
+  });
+}
+
+// pure.ts
+var import_sha256 = __nccwpck_require__(7178);
+
+// utils.ts
+var utf8Decoder = new TextDecoder("utf-8");
+var utf8Encoder = new TextEncoder();
+
+// pure.ts
+var JS = class {
+  generateSecretKey() {
+    return import_secp256k1.schnorr.utils.randomPrivateKey();
+  }
+  getPublicKey(secretKey) {
+    return (0, import_utils.bytesToHex)(import_secp256k1.schnorr.getPublicKey(secretKey));
+  }
+  finalizeEvent(t, secretKey) {
+    const event = t;
+    event.pubkey = (0, import_utils.bytesToHex)(import_secp256k1.schnorr.getPublicKey(secretKey));
+    event.id = getEventHash(event);
+    event.sig = (0, import_utils.bytesToHex)(import_secp256k1.schnorr.sign(getEventHash(event), secretKey));
+    event[verifiedSymbol] = true;
+    return event;
+  }
+  verifyEvent(event) {
+    if (typeof event[verifiedSymbol] === "boolean")
+      return event[verifiedSymbol];
+    const hash = getEventHash(event);
+    if (hash !== event.id) {
+      event[verifiedSymbol] = false;
+      return false;
+    }
+    try {
+      const valid = import_secp256k1.schnorr.verify(event.sig, hash, event.pubkey);
+      event[verifiedSymbol] = valid;
+      return valid;
+    } catch (err) {
+      event[verifiedSymbol] = false;
+      return false;
+    }
+  }
+};
+function serializeEvent(evt) {
+  if (!validateEvent(evt))
+    throw new Error("can't serialize event with wrong or missing properties");
+  return JSON.stringify([0, evt.pubkey, evt.created_at, evt.kind, evt.tags, evt.content]);
+}
+function getEventHash(event) {
+  let eventHash = (0, import_sha256.sha256)(utf8Encoder.encode(serializeEvent(event)));
+  return (0, import_utils.bytesToHex)(eventHash);
+}
+var i = new JS();
+var generateSecretKey = i.generateSecretKey;
+var getPublicKey = i.getPublicKey;
+var finalizeEvent = i.finalizeEvent;
+var verifyEvent = i.verifyEvent;
+
+
 /***/ })
 
 /******/ 	});
@@ -41084,7 +41221,8 @@ async function validateEvent2(event, url, method, body) {
 /************************************************************************/
 var __webpack_exports__ = {};
 const core = __nccwpck_require__(7484);
-const { SimplePool, getPublicKey, getEventHash, signEvent, nip19 } = __nccwpck_require__(510);
+const { SimplePool } = __nccwpck_require__(510);
+const { getPublicKey, finalizeEvent } = __nccwpck_require__(9810);
 const src_WebSocket = __nccwpck_require__(1354);
 
 async function run() {
@@ -41109,44 +41247,32 @@ async function run() {
         const fileUrl = `${host}${blossomHash}.txt`;
         console.log("File URL:", fileUrl);
         
-        const event = {
+        const eventTemplate = {
             kind: 1,
             created_at: Math.floor(Date.now() / 1000),
             tags: [['r', fileUrl]],
             content: `File uploaded: ${fileUrl}`,
-            pubkey: pubkey
         };
         
-        console.log("Created event:", JSON.stringify(event, null, 2));
+        console.log("Created event template:", JSON.stringify(eventTemplate, null, 2));
         
-        event.id = getEventHash(event);
-        console.log("Generated event hash:", event.id);
-        
-        event.sig = signEvent(event, nsec);
-        console.log("Signed event. Signature:", event.sig);
+        // Use finalizeEvent instead of separate hash and sign steps
+        const signedEvent = finalizeEvent(eventTemplate, nsec);
+        console.log("Finalized event:", JSON.stringify(signedEvent, null, 2));
         
         try {
             console.log(`Attempting to publish to relay: ${relay}`);
             
-            // Add event handlers to the pool
-            pool.on('connect', (relay) => {
-                console.log(`Connected to relay: ${relay}`);
-            });
-            
-            pool.on('error', (relay, error) => {
-                console.error(`Relay error: ${error}`);
-            });
-            
-            const pub = await pool.publish([relay], event);
+            const pub = await pool.publish([relay], signedEvent);
             console.log("Publish response:", pub);
-            console.log("Published event:", event.id);
+            console.log("Published event:", signedEvent.id);
             
             // Wait a bit before closing the pool
             console.log("Waiting 5 seconds before closing pool...");
             await new Promise(resolve => setTimeout(resolve, 5000));
             
-            core.setOutput('event-id', event.id);
-            console.log("Set output event-id:", event.id);
+            core.setOutput('event-id', signedEvent.id);
+            console.log("Set output event-id:", signedEvent.id);
             
             await pool.close();
             console.log("Pool closed");
