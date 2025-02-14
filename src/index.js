@@ -7,10 +7,10 @@ async function run() {
     try {
         const host = core.getInput('host', { required: true });
         const relay = core.getInput('relay', { required: true });
-        const blossomHash = core.getInput('blossom-hash', { required: true });
-        const nsec = core.getInput('nsec', { required: true });
-	// const blossomHash = "c87e2ca771bab6024c269b933389d2a92d4941c848c52f155b9b84e1f109fe35"
-        // const nsec = "f77b10f372165652103bfccadcd32669135164025ef59e7c254e83730357f4d6"
+        // const blossomHash = core.getInput('blossom-hash', { required: true });
+        // const nsec = core.getInput('nsec', { required: true });
+	const blossomHash = "c87e2ca771bab6024c269b933389d2a92d4941c848c52f155b9b84e1f109fe35"
+        const nsec = "f77b10f372165652103bfccadcd32669135164025ef59e7c254e83730357f4d6"
 
         // Extract just the hash from the URL
         const hashMatch = blossomHash.match(/([a-f0-9]{64})/);
