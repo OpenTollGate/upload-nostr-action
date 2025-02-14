@@ -20,7 +20,7 @@ jobs:
           echo "This is a test file" > dummy.txt
       - name: Upload dummy to Blossom
         id: upload
-        uses: c03rad0r/upload-blossom-action@6e15ba1abd32810145753929956df0c32c710089
+        uses: c03rad0r/upload-blossom-action@main
         with:
           host: 'https://blossom.swissdash.site/'
           filePath: './dummy.txt'
