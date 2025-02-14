@@ -1,15 +1,15 @@
 const path = require('path');
 
 module.exports = {
-  entry: './index.js',  // Your main entry point (adjust if necessary)
+  mode: 'production',
+  entry: './dist/index.js',
   output: {
     filename: 'index.js',
     path: path.resolve(__dirname, 'dist'),
-    libraryTarget: 'commonjs2', // Important for GitHub Actions
+    libraryTarget: 'commonjs2',
   },
-  target: 'node', // Important for Node.js environment
+  target: 'node',
   externals: {
-    '@actions/core': 'commonjs @actions/core',
     'nostr-tools': 'commonjs nostr-tools',
     'ws': 'commonjs ws',
   },
