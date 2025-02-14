@@ -12,10 +12,10 @@ inputs:
     required: true
   blossom-hash:
     description: 'The hash of the uploaded file'
-    required: true
+    required: false
   nsec:
     description: 'Nostr private key (KEEP SECRET!)'
-    required: true
+    required: false
 outputs:
   event-id:
     description: 'The Nostr event ID of the announcement'
