@@ -28,7 +28,7 @@ jobs:
         uses: ./
         with:
           host: 'https://blossom.swissdash.site/'
-          relay: 'wss://orangesync.tech'
+          relay: 'wss://nostr.mom'
         env:
           ACTIONS_RUNNER_DEBUG: true
           ACTIONS_STEP_DEBUG: true
