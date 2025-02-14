@@ -7,15 +7,18 @@ inputs:
   host:
     description: 'The Blossom host server'
     required: true
+  relay:
+    description: 'Nostr relay host'
+    required: true
   file-hash:
     description: 'The hash of the uploaded file'
     required: true
   nsec:
-    description: 'Nostr private key (optional if using environment variable)'
-    required: false
+    description: 'Nostr private key (KEEP SECRET!)'
+    required: true
 outputs:
   event-id:
     description: 'The Nostr event ID of the announcement'
 runs:
-  using: 'python3'
-  main: 'src/announce.py'
+  using: node20 # Or node16
+  main: dist/index.js # Path to your compiled JavaScript file
