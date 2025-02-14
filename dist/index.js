@@ -41224,6 +41224,7 @@ const core = __nccwpck_require__(7484);
 const { SimplePool } = __nccwpck_require__(510);
 const { getPublicKey, finalizeEvent } = __nccwpck_require__(9810);
 const src_WebSocket = __nccwpck_require__(1354);
+const { nip19 } = __nccwpck_require__(510);
 
 global.WebSocket = src_WebSocket;
 
@@ -41247,7 +41248,12 @@ async function run() {
         console.log(`Connecting to relay: ${relay}`);
         
         const pubkey = getPublicKey(nsec);
+        const npub = nip19.npubEncode(pubkey);
+        console.log("Publishing with public key:", pubkey);
+        console.log("Nostr address (npub):", npub);
+        
         const fileUrl = `${host}${blossomHash}.txt`;
+        console.log("File URL to be announced:", fileUrl);
         
         const eventTemplate = {
             kind: 1,
@@ -41256,7 +41262,14 @@ async function run() {
             content: `File uploaded: ${fileUrl}`,
         };
         
+        console.log("Event template:", JSON.stringify(eventTemplate, null, 2));
+        
         const signedEvent = finalizeEvent(eventTemplate, nsec);
+        console.log("Signed event:", JSON.stringify(signedEvent, null, 2));
+        
+        const noteId = nip19.noteEncode(signedEvent.id);
+        console.log("Event ID:", signedEvent.id);
+        console.log("Nostr note ID (note1):", noteId);
         
         // Publish with timeout
         console.log('Publishing event...');
@@ -41269,6 +41282,11 @@ async function run() {
             ]);
             
             console.log('Event published successfully');
+            console.log(`You can view this note at:
+- Snort: https://snort.social/e/${noteId}
+- Primal: https://primal.net/e/${noteId}
+- Coracle: https://coracle.social/note/${signedEvent.id}`);
+            
             core.setOutput('event-id', signedEvent.id);
         } catch (pubError) {
             throw new Error(`Failed to publish: ${pubError.message}`);
@@ -41280,10 +41298,8 @@ async function run() {
     } finally {
         if (pool) {
             try {
-                // Simple delay before cleanup
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 
-                // Clean up relays
                 if (pool._relays) {
                     for (const [_, relay] of Object.entries(pool._relays)) {
                         if (relay && typeof relay.close === 'function') {
@@ -41300,7 +41316,6 @@ async function run() {
     }
 }
 
-// Error handler for unhandled promises
 process.on('unhandledRejection', (error) => {
     console.error('Unhandled promise rejection:', error);
     setTimeout(() => process.exit(1), 1000);
