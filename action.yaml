@@ -10,7 +10,7 @@ inputs:
   relay:
     description: 'Nostr relay host'
     required: true
-  file-hash:
+  blossom-hash:
     description: 'The hash of the uploaded file'
     required: true
   nsec:
