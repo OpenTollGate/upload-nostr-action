@@ -1,0 +1,26 @@
+{
+  "name": "upload-nostr-action",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenTollGate/upload-nostr-action.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/OpenTollGate/upload-nostr-action/issues"
+  },
+  "homepage": "https://github.com/OpenTollGate/upload-nostr-action#readme",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "nostr-tools": "^2.10.4",
+    "ws": "^8.18.0"
+  }
+}
