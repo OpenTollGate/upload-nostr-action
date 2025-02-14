@@ -29,5 +29,5 @@ jobs:
         with:
           host: 'https://blossom.swissdash.site/'
           relay: 'wss://orangesync.tech'
-          file-hash: ${{ steps.upload.outputs.blossom-hash }}
+          blossom-hash: ${{ steps.upload.outputs.blossom-hash }}
           nsec: ${{ secrets.NOSTR_PRIVATE_KEY }}
