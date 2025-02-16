@@ -9,6 +9,9 @@ on:
 jobs:
   test-announce:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -16,8 +19,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Create dummy file
-        run: |
-          echo "This is a test file" > dummy.txt
+        run: echo "This is a test file" > dummy.txt
       - name: Upload dummy to Blossom
         id: upload
         uses: c03rad0r/upload-blossom-action@main
@@ -29,6 +31,8 @@ jobs:
         with:
           host: 'https://blossom.swissdash.site/'
           relay: 'wss://nostr.mom'
+          blossom-hash: ${{ steps.upload.outputs.blossom-hash }}
+          nsec: ${{ secrets.NSEC_SECRET }}
         env:
           ACTIONS_RUNNER_DEBUG: true
           ACTIONS_STEP_DEBUG: true

@@ -41232,14 +41232,11 @@ async function run() {
     let pool = null;
     try {
         console.log("Starting Nostr announcement process...");
-        
         const host = core.getInput('host', { required: true });
         const relay = core.getInput('relay', { required: true });
+        const blossomHash = core.getInput('blossom-hash', { required: true });
+        const nsec = core.getInput('nsec', { required: true });
         console.log(`Got inputs - Host: ${host}, Relay: ${relay}`);
-        
-        const blossomHash = "c87e2ca771bab6024c269b933389d2a92d4941c848c52f155b9b84e1f109fe35";
-        const nsec = "f77b10f372165652103bfccadcd32669135164025ef59e7c254e83730357f4d6";
-        console.log("Using hardcoded blossomHash:", blossomHash);
         
         console.log("Creating SimplePool...");
         pool = new SimplePool();
@@ -41252,7 +41249,8 @@ async function run() {
         console.log("Publishing with public key:", pubkey);
         console.log("Nostr address (npub):", npub);
         
-        const fileUrl = `${host}${blossomHash}.txt`;
+        // const fileUrl = `${host}${blossomHash}.txt`;
+        const fileUrl = `${blossomHash}`;
         console.log("File URL to be announced:", fileUrl);
         
         const eventTemplate = {

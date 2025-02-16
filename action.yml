@@ -10,6 +10,12 @@ inputs:
   relay:
     description: 'Nostr relay host'
     required: true
+  blossom-hash:
+    description: 'Hash of uploaded file from Blossom'
+    required: true
+  nsec:
+    description: 'Nostr secret key to sign events with'
+    required: true
 outputs:
   event-id:
     description: 'The Nostr event ID of the announcement'
